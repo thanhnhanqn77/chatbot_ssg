@@ -1,96 +1,128 @@
-# FLM Course Hybrid RAG API
+# FLM Course Hybrid RAG Chatbot & API
 
-API local cho chatbot RAG trên dữ liệu FLM curriculum/syllabus. Pipeline hiện tại:
+Hệ thống Chatbot RAG (Retrieval-Augmented Generation) hỗ trợ trả lời thông tin về khung chương trình (curriculum) và đề cương môn học (syllabus) ngành SAGE/FLM của Đại học FPT. 
 
-1. Document loader từ `knowledge_chunks.jsonl`
-2. Text cleaning và metadata preservation
-3. Semantic chunking cho các chunk quá dài
-4. BGE-M3 embedding
-   - dense vector
-   - sparse lexical weights
-5. Local vector database trên disk
-   - `documents.jsonl`
-   - `dense.npy`
-   - `hybrid.pkl`
-   - `stats.json`
-6. Query normalize
-7. BGE-M3 query embedding
-8. Hybrid retrieval
-9. Merge và deduplicate
-10. BGE reranker
-11. Context builder
-12. LLM answer generation qua Ollama-compatible `/api/chat`
+Hệ thống kết hợp tìm kiếm lai (**Hybrid Retrieval** - Dense & Sparse) sử dụng model **BGE-M3** để nhúng văn bản và xếp hạng lại với **BGE Reranker**, kết hợp tích hợp với mô hình ngôn ngữ lớn (LLM) qua API tương thích **Ollama**.
 
-## Cài Đặt
+---
 
-```powershell
-.\chatbot_ssg\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
+## 🛠️ Hướng Dẫn Cài Đặt và Chạy Dự Án
+
+### 1. Clone Code Về Máy Local
+
+Mở terminal (PowerShell, Command Prompt, hoặc Terminal trên macOS/Linux) và chạy lệnh sau để clone mã nguồn:
+
+```bash
+git clone https://github.com/thanhnhanqn77/chatbot_ssg.git
+cd chatbot_ssg
 ```
 
-Lần đầu chạy BGE-M3 sẽ tải model từ Hugging Face, nên cần mạng và đủ dung lượng.
+### 2. Khởi Tạo và Kích Hoạt Môi Trường Ảo (Virtual Environment)
 
-## Build Hybrid Knowledge Index
+Nên sử dụng môi trường ảo Python (khuyên dùng Python 3.9 - 3.11) để tránh xung đột thư viện:
 
-Dùng trực tiếp dataset đã normalize:
+* **Trên Windows (PowerShell):**
+  ```powershell
+  python -m venv chatbot_ssg
+  .\chatbot_ssg\Scripts\Activate.ps1
+  ```
+* **Trên Windows (CMD):**
+  ```cmd
+  python -m venv chatbot_ssg
+  .\chatbot_ssg\Scripts\activate.bat
+  ```
+* **Trên macOS/Linux:**
+  ```bash
+  python3 -m venv chatbot_ssg
+  source chatbot_ssg/bin/activate
+  ```
 
-```powershell
-.\chatbot_ssg\Scripts\Activate.ps1
-python scripts/build_hybrid_index.py --chunks D:\ssg\data\normalized\knowledge_chunks.jsonl --out D:\ssg\data\index
+### 3. Cài Đặt Các Thư Viện Cần Thiết
+
+Cài đặt tất cả dependencies từ file `requirements.txt`:
+
+```bash
+pip install --upgrade pip
+pip install -r requirements.txt
 ```
 
-Hoặc normalize lại từ JSON gốc rồi build hybrid:
+*(Lưu ý: Lần đầu tiên chạy hoặc build chỉ mục, thư viện Hugging Face sẽ tự động tải các mô hình `BAAI/bge-m3` và `BAAI/bge-reranker-v2-m3` về máy, quá trình này cần kết nối internet ổn định).*
 
-```powershell
-.\chatbot_ssg\Scripts\Activate.ps1
+### 4. Cấu Hình Biến Môi Trường (`.env`)
+
+Sao chép file cấu hình mẫu `.env.example` thành `.env`:
+
+```bash
+# Trên Windows (PowerShell)
+cp .env.example .env
+
+# Trên macOS/Linux hoặc CMD
+cp .env.example .env
+```
+
+Mở file `.env` bằng trình soạn thảo và điền thông tin kết nối tới Ollama / LLM của bạn:
+
+```env
+OLLAMA_HOST=https://ollama.com              # URL của Ollama API (hoặc endpoint tương thích)
+OLLAMA_MODEL=gpt-oss:120b-cloud             # Tên model LLM sử dụng
+OLLAMA_API_KEY=your_api_key_here            # API key kết nối (nếu dùng cloud/remote host)
+RAG_EMBEDDING_MODEL=BAAI/bge-m3             # Model dùng để nhúng văn bản (dense/sparse)
+```
+
+---
+
+## 🏗️ Tạo Chỉ Mục Tìm Kiếm (Build Knowledge Index)
+
+Nếu bạn chưa có sẵn dữ liệu index trong thư mục `data/index`, hãy tạo dữ liệu và build index bằng cách chạy tập lệnh chuẩn bị:
+
+```bash
+# Tạo và build hybrid index từ dữ liệu normalized
 python scripts/prepare_rag.py --backend hybrid
 ```
 
-Nếu muốn build cả hybrid và TF-IDF fallback:
+Lệnh này sẽ xử lý các chunk từ dữ liệu thô, nhúng vector bằng model BGE-M3 (dense và sparse) và lưu trữ cục bộ vào đĩa dưới thư mục `data/index/`.
 
-```powershell
-python scripts/prepare_rag.py --backend both
-```
+---
 
-## Chạy API
+## 🚀 Chạy Web Chatbot và API Server
 
-```powershell
-.\chatbot_ssg\Scripts\Activate.ps1
+Khởi động máy chủ API tích hợp giao diện web bằng lệnh sau:
+
+```bash
 python scripts/serve_api.py
 ```
 
-Mặc định API chạy tại `http://127.0.0.1:8000`.
+Mặc định máy chủ sẽ khởi chạy tại: **`http://127.0.0.1:8000`**
 
-## Endpoint
+### 💻 Truy Cập Giao Diện Web Chatbot
+* Mở trình duyệt web và truy cập địa chỉ: **[http://127.0.0.1:8000/](http://127.0.0.1:8000/)**
+* Giao diện chat trực quan sẽ hiển thị. Bạn có thể nhập các câu hỏi liên quan đến môn học, chương trình học, số tín chỉ, lộ trình học để kiểm tra và nhận câu trả lời từ RAG Chatbot.
 
-`POST /chat`
+### 🧪 Test API Bằng Câu Lệnh (Command Line)
+Bạn có thể test trực tiếp cổng API `/chat` bằng công cụ dòng lệnh:
 
-```json
-{
-  "question": "OTP101 học mấy tín chỉ?",
-  "top_k": 6
-}
-```
+* **Bằng PowerShell (Windows):**
+  ```powershell
+  Invoke-RestMethod http://127.0.0.1:8000/chat `
+    -Method Post `
+    -ContentType "application/json" `
+    -Body '{"question": "Ngành Trí tuệ nhân tạo học mấy học kỳ?", "top_k": 6}'
+  ```
 
-Test bằng PowerShell:
+* **Bằng cURL (Terminal macOS/Linux/Git Bash):**
+  ```bash
+  curl -X POST http://127.0.0.1:8000/chat \
+    -H "Content-Type: application/json" \
+    -d '{"question": "Ngành Trí tuệ nhân tạo học mấy học kỳ?", "top_k": 6}'
+  ```
 
-```powershell
-Invoke-RestMethod http://127.0.0.1:8000/chat `
-  -Method Post `
-  -ContentType "application/json" `
-  -Body '{"question":"OTP101 học mấy tín chỉ?","top_k":6}'
-```
+---
 
-## Cấu Hình Chính
+## 📂 Cấu Trúc Dự Án
 
-Các biến trong `.env.example`:
-
-- `RAG_RETRIEVAL_BACKEND=hybrid`
-- `RAG_EMBEDDING_MODEL=BAAI/bge-m3`
-- `RAG_RERANKER_MODEL=BAAI/bge-reranker-v2-m3`
-- `RAG_EMBEDDING_BATCH_SIZE=12`
-- `RAG_CHUNK_MAX_CHARS=2200`
-- `RAG_CHUNK_OVERLAP=250`
-- `RAG_HYBRID_DENSE_WEIGHT=0.55`
-- `RAG_HYBRID_SPARSE_WEIGHT=0.45`
-- `RAG_HYBRID_USE_RERANKER=true`
+* `rag_app/`: Chứa mã nguồn cốt lõi của RAG pipeline (FastAPI app, retrievers, normalizers).
+  * `rag_app/static/index.html`: Giao diện Web Chatbot (HTML/JS/CSS).
+  * `rag_app/api.py`: Các endpoints API và logic tích hợp.
+* `scripts/`: Chứa các script chạy độc lập để build index và chạy server.
+* `requirements.txt`: Danh sách thư viện Python phụ thuộc.
+* `.gitignore`: File quy định các thư mục/file không được đẩy lên Git (tránh lộ API key và đẩy các file nhúng vector siêu nặng).
