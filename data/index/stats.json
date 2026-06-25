@@ -1,0 +1,16 @@
+{
+  "built_at": "2026-06-24T22:35:00.864973+00:00",
+  "backend": "bge-m3-hybrid-local",
+  "source_chunks_path": "D:\\ssg\\data\\normalized\\knowledge_chunks.jsonl",
+  "source_documents": 15713,
+  "documents": 21829,
+  "dense_shape": [
+    21829,
+    384
+  ],
+  "sparse_terms": 0,
+  "embedding_model": "BAAI/bge-small-en-v1.5",
+  "documents_file": "D:\\ssg\\data\\index\\documents.jsonl",
+  "dense_file": "D:\\ssg\\data\\index\\dense.npy",
+  "hybrid_file": "D:\\ssg\\data\\index\\hybrid.pkl"
+}

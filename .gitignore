@@ -153,8 +153,7 @@ cython_debug/
 .vscode/
 
 # Project-specific ignores
-data/
+data/*.log
+data/**/*.log
 flm-crawl.json
 flm-syllabi.json
-*.npy
-*.pkl

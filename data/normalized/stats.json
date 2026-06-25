@@ -1,0 +1,21 @@
+{
+  "generated_at": "2026-06-24T12:09:45.285754+00:00",
+  "source_files": {
+    "crawl": "D:\\ssg\\flm-crawl.json",
+    "syllabi": "D:\\ssg\\flm-syllabi.json"
+  },
+  "curricula_count": 185,
+  "syllabi_count": 512,
+  "chunks_count": 15713,
+  "chunks_by_type": {
+    "curriculum_overview": 185,
+    "curriculum_subject": 8722,
+    "curriculum_semester": 1850,
+    "syllabus_overview": 512,
+    "syllabus_learning_outcomes": 508,
+    "syllabus_materials": 510,
+    "syllabus_assessments": 510,
+    "syllabus_schedule": 2777,
+    "syllabus_constructive_questions": 139
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "source": "data\\normalized\\knowledge_chunks.jsonl",
+  "output": "data\\normalized\\knowledge_chunks_organized.jsonl",
+  "source_documents": 15713,
+  "organized_documents": 21829
+}
